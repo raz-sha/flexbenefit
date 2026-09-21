@@ -11,8 +11,10 @@ below) from the in-app "Manage users" screen.
 
 ## Architecture
 
-- `lib/` — Flutter app (login screen, role-based routing, admin CRUD screens).
+- `lib/` — Flutter app (login screen, role-based routing, admin CRUD screens, user file upload).
 - `supabase/migrations/0001_init.sql` — `profiles` table (username, full_name, role) + RLS policies.
+- `supabase/migrations/0002_storage.sql` — private `uploads` Storage bucket; each user can only
+  read/write their own folder (`<user_id>/...`), admins can read/delete everyone's.
 - `supabase/functions/admin-users/` — Edge Function that performs privileged actions (create user,
   delete user, reset password) using the Supabase **service-role key**. That key must never be
   embedded in the Flutter app, since it ships to the browser on GitHub Pages — this function is the
@@ -25,7 +27,7 @@ admin-only Row Level Security policy — no Edge Function round trip needed for 
 ## 1. Create the Supabase project
 
 1. Create a free project at [supabase.com](https://supabase.com).
-2. In **SQL Editor**, run `supabase/migrations/0001_init.sql`.
+2. In **SQL Editor**, run `supabase/migrations/0001_init.sql`, then `supabase/migrations/0002_storage.sql`.
 3. In **Authentication → Providers → Email**, turn **off** "Confirm email" (not required, since
    accounts are created server-side with `email_confirm: true`, but simplest to disable it).
 4. In **Project Settings → API**, note down:
