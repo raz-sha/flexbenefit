@@ -29,10 +29,11 @@ admin-only Row Level Security policy — no Edge Function round trip needed for 
 3. In **Authentication → Providers → Email**, turn **off** "Confirm email" (not required, since
    accounts are created server-side with `email_confirm: true`, but simplest to disable it).
 4. In **Project Settings → API**, note down:
-   - `Project URL` → `SUPABASE_URL`
-   - `anon public` key → `SUPABASE_ANON_KEY`
-   - `service_role` key → used only for the Edge Function secret below. **Never** put this in the
-     Flutter app or in a GitHub Actions secret consumed by the client build.
+   - `Project URL` and the `anon`/`publishable` key → already hardcoded into `lib/config/env.dart`
+     for this project (safe to ship in client code; access is controlled by RLS, not by hiding this
+     key). If you spin up a different Supabase project, update that file with the new values.
+   - `service_role` key → used only for the Edge Function secret below. **Never** put this in
+     `lib/`, and never commit it — it bypasses RLS entirely.
 
 ## 2. Deploy the Edge Function
 
@@ -64,25 +65,20 @@ There's no public sign-up, so bootstrap one admin manually:
 From there, use **Manage users** in the app to create every other account (the form takes a
 username, password, full name and role — no Edge Function/SQL needed again).
 
-## 4. Configure GitHub Pages + secrets
+## 4. Configure GitHub Pages
 
 1. Repo **Settings → Pages → Source** → set to **GitHub Actions**.
-2. Repo **Settings → Secrets and variables → Actions**, add:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-
-   (The anon key is designed to be public and safe in a client bundle; it's still passed as a
-   secret here just to keep it out of the workflow file.)
-3. Push to `main` — the `deploy.yml` workflow builds and publishes to
+2. Push to `main` — the `deploy.yml` workflow builds and publishes to
    `https://<your-username>.github.io/flexbenefit/`.
+
+No repo secrets are needed for the app build, since the Supabase URL/anon key live directly in
+`lib/config/env.dart`.
 
 ## Local development
 
 ```bash
 flutter pub get
-flutter run -d chrome \
-  --dart-define=SUPABASE_URL=https://xxxx.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=xxxxx
+flutter run -d chrome
 ```
 
 ## Notes / next steps
